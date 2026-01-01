@@ -1,6 +1,8 @@
 [
   {
     "listing": "/musings.html",
-    "items": []
+    "items": [
+      "/posts/cost-of-housing.html"
+    ]
   }
 ]
