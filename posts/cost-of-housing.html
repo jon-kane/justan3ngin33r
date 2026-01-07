@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-01-01">
+<meta name="dcterms.date" content="2026-01-07">
 <meta name="description" content="cost of housing in the US over time">
 
 <title>how expensive is housing?</title>
@@ -32,6 +32,7 @@ ul.task-list li input[type="checkbox"] {
 <script src="../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../">
+<link href="../images/logo.png" rel="icon" type="image/png">
 <script src="../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="../site_libs/quarto-html/popper.min.js"></script>
@@ -91,8 +92,8 @@ ul.task-list li input[type="checkbox"] {
 <span class="menu-text">home</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="../musings.html"> 
-<span class="menu-text">musings</span></a>
+    <a class="nav-link" href="../writings.html"> 
+<span class="menu-text">writings</span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -105,18 +106,24 @@ ul.task-list li input[type="checkbox"] {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#nationally" id="toc-nationally" class="nav-link active" data-scroll-target="#nationally">nationally</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
-<main class="content column-page" id="quarto-document-content">
+<main class="content page-columns page-full column-page-left" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title">how expensive is housing?</h1>
   <div class="quarto-categories">
     <div class="quarto-category">economics</div>
-    <div class="quarto-category">data science</div>
+    <div class="quarto-category">housing</div>
   </div>
   </div>
 
@@ -127,13 +134,13 @@ ul.task-list li input[type="checkbox"] {
 </div>
 
 
-<div class="quarto-title-meta column-page">
+<div class="quarto-title-meta column-page-left">
 
     
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 1, 2026</p>
+      <p class="date">January 7, 2026</p>
     </div>
   </div>
   
@@ -145,8 +152,143 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>TODO</p>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Work in Progress
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>I am actively updating this post. Content may change frequently as work my way through this article.</p>
+</div>
+</div>
+<p>I want to look at…</p>
+<ul>
+<li>The proportion of a person’s monthly income that would be dedicated to their monthly mortgage (30-year).</li>
+<li>The (total cost of a house)/(annual income)</li>
+</ul>
+<p>I want to examine this info over time and look at it from a…</p>
+<ul>
+<li>National level</li>
+<li>State level</li>
+<li>County level</li>
+</ul>
+<section id="nationally" class="level1 page-columns page-full">
+<h1>nationally</h1>
+<p>The data we are using from the <a href="https://fred.stlouisfed.org/">FRED</a>:</p>
+<ul>
+<li><em>CPIAUCSL</em>: Consumer Price Index for All Urban Consumers: All Items in U.S. City Average</li>
+<li><em>MSPUS</em>: Median Sales Price of Houses Sold for the United States</li>
+<li><em>MORTGAGE30US</em>: 30-Year Fixed Rate Mortgage Average in the United States</li>
+<li><em>MEHOINUSA646N</em>: Median Household Income in the United States</li>
+</ul>
+<p>A first look at the data:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="cost-of-housing_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>What I need to do:</p>
+<ul>
+<li>Put the data in the same time frequency (use time series models)
+<ul>
+<li>CPIAUCSL: monthly</li>
+<li>MEHOINUSA646N: annual</li>
+<li>MORTGAGE30US: weekly</li>
+<li>MSPUS: quarterly</li>
+</ul></li>
+<li>Forecast some series to match the most recent data point available. Account for uncertainty.</li>
+</ul>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4 × 3
+  symbol        min_date   max_date  
+  &lt;chr&gt;         &lt;date&gt;     &lt;date&gt;    
+1 CPIAUCSL      1947-01-01 2025-11-01
+2 MEHOINUSA646N 1975-01-01 2024-01-01
+3 MORTGAGE30US  1971-04-02 2025-12-31
+4 MSPUS         1963-01-01 2025-04-01</code></pre>
+</div>
+</div>
+<p>A look at the modeled data. Converted to a monthly frequency.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> Range examined from the max-min date (January, 1975) of the different series to the max date (December, 2025) of all the series.</p>
+<div class="no-row-height column-margin column-container"><div id="fn1"><p><sup>1</sup>&nbsp;Weekly frequency has been averaged. Annual and quarterly frequency linearly interpolated. No error estimates included in averaged/interpolated points.</p></div></div><div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4 × 3
+  symbol        min_date   max_date  
+  &lt;chr&gt;         &lt;date&gt;     &lt;date&gt;    
+1 CPIAUCSL      1975-01-01 2025-12-01
+2 MEHOINUSA646N 1975-01-01 2025-12-01
+3 MORTGAGE30US  1975-01-01 2025-12-01
+4 MSPUS         1975-01-01 2025-12-01</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="cost-of-housing_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Now, to build out the metrics:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="cost-of-housing_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>For the monthly mortgage payment (30-year mortgage), we’ll assume a 20% down payment so the mortgage will 80% of the home value:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="cost-of-housing_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Now, let’s get the percentage of a person’s gross income that would go to their mortgage:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="cost-of-housing_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="cost-of-housing_files/figure-html/unnamed-chunk-7-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Lastly, let’s look at the total cost of a house divided by the annual income:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="cost-of-housing_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>This <a href="https://www.longtermtrends.com/home-price-median-annual-income-ratio/">website</a> provides a good visual, tracking the change over a longer period of time. However, they use the Case-Shiller index which gives the average home price and divide that by the median. This gives a more pessimistic view of the cost of housing than is actual.</p>
 
+
+</section>
 
 
 </main> <!-- /main -->

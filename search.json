@@ -1,23 +1,23 @@
 [
   {
-    "objectID": "posts/cost-of-housing.html",
-    "href": "posts/cost-of-housing.html",
-    "title": "how expensive is housing?",
+    "objectID": "writings.html",
+    "href": "writings.html",
+    "title": "writings",
     "section": "",
-    "text": "TODO"
+    "text": "how expensive is housing?\n\n\n\neconomics\n\nhousing\n\n\n\ncost of housing in the US over time\n\n\n\n\n\nJanuary 7, 2026\n\n7 min\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "index.html",
     "href": "index.html",
-    "title": "",
+    "title": "home",
     "section": "",
     "text": "I have a noisy brain. I’m also forgetful. In an attempt to organize that noise, and to help me remember things, I’ve started this website to share things that I find interesting.\nMost musings will probably have a data science flavor, though I make no promises. This website is powered by coffee, so if you find any of this helpful and would like to support my work, consider buying me a coffee.\nThe animation on this page is of the collatz conjecture and was inspired by this visual."
   },
   {
-    "objectID": "musings.html",
-    "href": "musings.html",
-    "title": "musings",
+    "objectID": "posts/cost-of-housing.html",
+    "href": "posts/cost-of-housing.html",
+    "title": "how expensive is housing?",
     "section": "",
-    "text": "how expensive is housing?\n\n\n\neconomics\n\ndata science\n\n\n\ncost of housing in the US over time\n\n\n\n\n\nJanuary 1, 2026\n\n1 min\n\n\n\n\nNo matching items"
+    "text": "Work in Progress\n\n\n\nI am actively updating this post. Content may change frequently as work my way through this article.\n\n\nI want to look at…\n\nThe proportion of a person’s monthly income that would be dedicated to their monthly mortgage (30-year).\nThe (total cost of a house)/(annual income)\n\nI want to examine this info over time and look at it from a…\n\nNational level\nState level\nCounty level\n\n\nnationally\nThe data we are using from the FRED:\n\nCPIAUCSL: Consumer Price Index for All Urban Consumers: All Items in U.S. City Average\nMSPUS: Median Sales Price of Houses Sold for the United States\nMORTGAGE30US: 30-Year Fixed Rate Mortgage Average in the United States\nMEHOINUSA646N: Median Household Income in the United States\n\nA first look at the data:\n\n\n\n\n\n\n\n\n\nWhat I need to do:\n\nPut the data in the same time frequency (use time series models)\n\nCPIAUCSL: monthly\nMEHOINUSA646N: annual\nMORTGAGE30US: weekly\nMSPUS: quarterly\n\nForecast some series to match the most recent data point available. Account for uncertainty.\n\n\n\n# A tibble: 4 × 3\n  symbol        min_date   max_date  \n  &lt;chr&gt;         &lt;date&gt;     &lt;date&gt;    \n1 CPIAUCSL      1947-01-01 2025-11-01\n2 MEHOINUSA646N 1975-01-01 2024-01-01\n3 MORTGAGE30US  1971-04-02 2025-12-31\n4 MSPUS         1963-01-01 2025-04-01\n\n\nA look at the modeled data. Converted to a monthly frequency.1 Range examined from the max-min date (January, 1975) of the different series to the max date (December, 2025) of all the series.\n1 Weekly frequency has been averaged. Annual and quarterly frequency linearly interpolated. No error estimates included in averaged/interpolated points.\n\n# A tibble: 4 × 3\n  symbol        min_date   max_date  \n  &lt;chr&gt;         &lt;date&gt;     &lt;date&gt;    \n1 CPIAUCSL      1975-01-01 2025-12-01\n2 MEHOINUSA646N 1975-01-01 2025-12-01\n3 MORTGAGE30US  1975-01-01 2025-12-01\n4 MSPUS         1975-01-01 2025-12-01\n\n\n\n\n\n\n\n\n\n\n\nNow, to build out the metrics:\n\n\n\n\n\n\n\n\n\nFor the monthly mortgage payment (30-year mortgage), we’ll assume a 20% down payment so the mortgage will 80% of the home value:\n\n\n\n\n\n\n\n\n\nNow, let’s get the percentage of a person’s gross income that would go to their mortgage:\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nLastly, let’s look at the total cost of a house divided by the annual income:\n\n\n\n\n\n\n\n\n\nThis website provides a good visual, tracking the change over a longer period of time. However, they use the Case-Shiller index which gives the average home price and divide that by the median. This gives a more pessimistic view of the cost of housing than is actual."
   }
 ]
