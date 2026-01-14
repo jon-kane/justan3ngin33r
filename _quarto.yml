@@ -5,11 +5,11 @@ execute:
     echo: false
 
 website:
-  site-url: "https://jon-kane.github.io/justan3ngin33r"
+  site-url: "https://jon-kane.github.io/echinos"
   favicon: "images/logo_gray.png"
   navbar:
     logo: "images/logo_cropped.png"
-    logo-href: "https://buymeacoffee.com/justan3ngin33r"
+    logo-href: "https://buymeacoffee.com/echinos"
     left:
       - href: index.qmd
         text: home

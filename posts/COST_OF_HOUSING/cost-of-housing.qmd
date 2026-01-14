@@ -1,6 +1,6 @@
 ---
-title: "how expensive is housing?"
-description: "cost of housing in the US over time"
+title: "how expensive is housing in the US?"
+description: "an examination of the cost of housing in the US over time"
 categories: [economics, housing]
 format: html
 date: last-modified
@@ -8,7 +8,7 @@ date-format: long
 code-links:
   - text: repository
     icon: github
-    href: "https://github.com/jon-kane/justan3ngin33r/tree/main/posts/COST_OF_HOUSING"
+    href: "https://github.com/jon-kane/echinos/tree/main/posts/COST_OF_HOUSING"
 ---
 
 ```{r setup}
@@ -138,8 +138,8 @@ I am actively updating this post. Content will change as I work my way through t
 
 At a national scale,
 
-- From `r format(min(tb_lm_pi$date), '%B %Y')` to `r format(max(tb_lm_pi$date), '%B %Y')`, the price-to-income ratio of a home has **increased by `r round(coef(lm_pi)[2] * 365*100, 3)` percentage points (pp) per year on average**. As of `r format(max(tb_lm_pi$date), '%B %Y')`, the ratio stands at `r round(last(tb_lm_pi$pi_ratio), 2)`^[Meaning the typical house costs the typical household `r round(last(tb_lm_pi$pi_ratio), 2)` $\times$ their gross annual income], placing it in the **`r scales::ordinal(pi_target_percentile * 100)` percentile of all observations** in this period.
-- From `r format(min(tb_lm_dti$date), '%B %Y')` to `r format(max(tb_lm_dti$date), '%B %Y')`, the mortgage debt-to-income ratio has **decreased by `r round(coef(lm_dti)[2] * 365, 3)` pp per year on average**. As of `r format(max(tb_lm_dti$date), '%B %Y')`, the ratio stands at `r round(last(tb_lm_dti$dti_ratio), 2)`^[Meaning the typical household would spend `r round(last(tb_lm_dti$dti_ratio), 2)` $\times$ their monthly income on the typical mortgage. This calculation assumes only interest and principal.], placing it in the **`r scales::ordinal(dti_target_percentile * 100)` percentile of all observations** in this period.
+- From `r format(min(tb_lm_pi$date), '%B %Y')` to `r format(max(tb_lm_pi$date), '%B %Y')`, the price-to-income ratio of a home has **increased by `r round(coef(lm_pi)[2]*365*100, 3)` percentage points (pp) per year on average**. As of `r format(max(tb_lm_pi$date), '%B %Y')`, the ratio stands at `r round(last(tb_lm_pi$pi_ratio), 2)`^[Meaning the typical house costs the typical household `r round(last(tb_lm_pi$pi_ratio), 2)` $\times$ their gross annual income], placing it in the **`r scales::ordinal(pi_target_percentile * 100)` percentile of all observations** in this period.
+- From `r format(min(tb_lm_dti$date), '%B %Y')` to `r format(max(tb_lm_dti$date), '%B %Y')`, the mortgage debt-to-income ratio has **decreased by `r round(coef(lm_dti)[2]*365*100, 3)` pp per year on average**. As of `r format(max(tb_lm_dti$date), '%B %Y')`, the ratio stands at `r round(last(tb_lm_dti$dti_ratio), 2)`^[Meaning the typical household would spend `r round(last(tb_lm_dti$dti_ratio), 2)` $\times$ their monthly income on the typical mortgage. This calculation assumes only interest and principal.], placing it in the **`r scales::ordinal(dti_target_percentile * 100)` percentile of all observations** in this period.
 
 # intro
 
