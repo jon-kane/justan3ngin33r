@@ -1,15 +1,20 @@
 ---
-title: "how expensive is housing in the US?"
-description: "an examination of the cost of housing in the US over time"
-categories: [economics, housing]
+title: "How expensive is housing in the US?"
+description: "An examination of the cost of housing in the US over time."
+categories: [economics, housing, deep dive]
 format: html
-date: last-modified
+date-modified: last-modified
 date-format: long
 code-links:
   - text: repository
     icon: github
     href: "https://github.com/jon-kane/echinos/tree/main/posts/COST_OF_HOUSING"
 ---
+
+::: {.callout-warning}
+## Work in Progress
+I am actively updating this post. Content will change as I work my way through this article.
+:::
 
 ```{r setup}
 #| include: false
@@ -29,8 +34,10 @@ library(knitr)
 national_data = readRDS(here::here("posts/COST_OF_HOUSING/national-data.rds"))
 attach(national_data)
 
+cpi_baseline_year = 2026
+
 cpi_baseline = tb_nm %>% 
-  filter(symbol == "CPIAUCSL", year(date) == 2025, month(date) == 1) %>% 
+  filter(symbol == "CPIAUCSL", year(date) == cpi_baseline_year, month(date) == 1) %>% 
   pull(price)
 
 tb_final01 = tb_nm %>% # national data structured
@@ -86,51 +93,51 @@ tb_final01 = tb_nm %>% # national data structured
     pi_u = pi_ratio + 3 * pi_sd
   )
 
-# model of price/income ratio
-lm_pi = lm(
-  pi_ratio ~ date,
-  data = tb_final01
-)
+# helper function to get...
+# a linear model
+# data that forms its prediction with intervals
+# ECDF
+getStuff = function(p, data_) {
+  f = reformulate("date", response = p)
+  
+  lm_ = lm(
+    formula = f,
+    data = data_  
+  )
 
-tb_lm_pi = lm_pi$model %>% 
-  bind_cols(
-    predict(lm_pi, ., se.fit = T) %>% 
-      magrittr::extract(c("fit", "se.fit")) %>% 
-      as_tibble()
-  ) %>% 
-  mutate(fit_upper = fit + 3*se.fit) %>% 
-  mutate(fit_lower = fit - 3*se.fit)
+  tb_lm = lm_$model %>% 
+    bind_cols(
+      predict(lm_, ., se.fit = T) %>% 
+        magrittr::extract(c("fit", "se.fit")) %>% 
+        as_tibble()
+    ) %>% 
+    mutate(fit_upper = fit + 3*se.fit) %>% 
+    mutate(fit_lower = fit - 3*se.fit)
+  
+  getPercentile = ecdf(tb_lm[[p]])
+  
+  target_percentile = getPercentile(last(tb_lm[[p]]))
+  
+  list(
+    mod = lm_,
+    tb = tb_lm,
+    getPercentile = getPercentile,
+    tp = target_percentile
+  ) %>% return()
+}
 
-get_pi_percentile = ecdf(tb_lm_pi$pi_ratio)
+# model data of the adjusted median home price
+hp_data = getStuff("home_real", tb_final01)
 
-# Use it on any value
-pi_target_percentile = get_pi_percentile(last(tb_lm_pi$pi_ratio))
+# model data of the adjusted household income
+hi_data = getStuff("income_real", tb_final01)
 
-# model of debt-to-income ratio for monthly mortgage
-lm_dti = lm(
-  dti_ratio ~ date,
-  data = tb_final01
-)
+# model data of price/income ratio
+pi_data = getStuff("pi_ratio", tb_final01)
 
-tb_lm_dti = lm_dti$model %>% 
-  bind_cols(
-    predict(lm_dti, ., se.fit = T) %>% 
-      magrittr::extract(c("fit", "se.fit")) %>% 
-      as_tibble()
-  ) %>% 
-  mutate(fit_upper = fit + 3*se.fit) %>% 
-  mutate(fit_lower = fit - 3*se.fit)
-
-get_dti_percentile = ecdf(tb_lm_dti$dti_ratio)
-
-# Use it on any value
-dti_target_percentile = get_dti_percentile(last(tb_lm_dti$dti_ratio))
+# model data of debt-to-income ratio for monthly mortgage
+di_data = getStuff("dti_ratio", tb_final01)
 ```
-
-::: {.callout-warning}
-## Work in Progress
-I am actively updating this post. Content will change as I work my way through this article.
-:::
 
 # tl;dr
 
@@ -138,8 +145,10 @@ I am actively updating this post. Content will change as I work my way through t
 
 At a national scale,
 
-- From `r format(min(tb_lm_pi$date), '%B %Y')` to `r format(max(tb_lm_pi$date), '%B %Y')`, the price-to-income ratio of a home has **increased by `r round(coef(lm_pi)[2]*365*100, 3)` percentage points (pp) per year on average**. As of `r format(max(tb_lm_pi$date), '%B %Y')`, the ratio stands at `r round(last(tb_lm_pi$pi_ratio), 2)`^[Meaning the typical house costs the typical household `r round(last(tb_lm_pi$pi_ratio), 2)` $\times$ their gross annual income], placing it in the **`r scales::ordinal(pi_target_percentile * 100)` percentile of all observations** in this period.
-- From `r format(min(tb_lm_dti$date), '%B %Y')` to `r format(max(tb_lm_dti$date), '%B %Y')`, the mortgage debt-to-income ratio has **decreased by `r round(coef(lm_dti)[2]*365*100, 3)` pp per year on average**. As of `r format(max(tb_lm_dti$date), '%B %Y')`, the ratio stands at `r round(last(tb_lm_dti$dti_ratio), 2)`^[Meaning the typical household would spend `r round(last(tb_lm_dti$dti_ratio), 2)` $\times$ their monthly income on the typical mortgage. This calculation assumes only interest and principal.], placing it in the **`r scales::ordinal(dti_target_percentile * 100)` percentile of all observations** in this period.
+- From `r format(min(hp_data$tb$date), '%B %Y')` to `r format(max(hp_data$tb$date), '%B %Y')`, the adjusted median home price (`r cpi_baseline_year` dollars) has **increased by `r scales::dollar(coef(hp_data$mod)[2]*365, 2)`  per year on average**. As of `r format(max(hp_data$tb$date), '%B %Y')`, the adjusted median home price stands at `r scales::dollar(last(hp_data$tb$home_real), 2)`, placing it in the **`r scales::ordinal(hp_data$tp * 100)` percentile of all observations** in this period.
+- Over the same period, the adjusted median household income (`r cpi_baseline_year` dollars) has **increased by `r scales::dollar(coef(hi_data$mod)[2]*365, 2)`  per year on average**. As of `r format(max(hp_data$tb$date), '%B %Y')`, the adjusted median household income stands at `r scales::dollar(last(hi_data$tb$home_real), 2)`, placing it in the **`r scales::ordinal(hi_data$tp * 100)` percentile of all observations** in this period.
+- From `r format(min(pi_data$tb$date), '%B %Y')` to `r format(max(pi_data$tb$date), '%B %Y')`, the price-to-income ratio of a home has **increased by `r round(coef(pi_data$mod)[2]*365*100, 2)` percentage points (pp) per year on average**. As of `r format(max(pi_data$tb$date), '%B %Y')`, the ratio stands at `r round(last(pi_data$tb$pi_ratio), 2)`^[Meaning the typical house costs the typical household `r round(last(pi_data$tb$pi_ratio), 2)` $\times$ their gross annual income], placing it in the **`r scales::ordinal(pi_data$tp * 100)` percentile of all observations** in this period.
+- From `r format(min(di_data$tb$date), '%B %Y')` to `r format(max(di_data$tb$date), '%B %Y')`, the mortgage debt-to-income ratio has **decreased by `r round(coef(di_data$mod)[2]*365*100, 2)` pp per year on average**. As of `r format(max(di_data$tb$date), '%B %Y')`, the ratio stands at `r round(last(di_data$tb$dti_ratio), 2)`^[Meaning the typical household would spend `r round(last(di_data$tb$dti_ratio), 2)` $\times$ their monthly income on the typical mortgage. This calculation assumes only interest and principal.], placing it in the **`r scales::ordinal(di_data$tp * 100)` percentile of all observations** in this period.
 
 # intro
 
@@ -190,7 +199,7 @@ tb_viz = tb_n %>%
       "MSPUS"         ~ "median home price",
       "MEHOINUSA646N" ~ "median household income",
       "MORTGAGE30US"  ~ "30-year fixed mortgage rate",
-      "CPIAUCSL"      ~ "consumer price index (cpi)",
+      "CPIAUCSL"      ~ "consumer price index",
       .default = symbol
     )
   )
@@ -225,6 +234,7 @@ createInteractivePlot = function(data, symbol_code, plot_color, y_label_fn) {
       linewidth = 0.8
     ) +
     scale_y_continuous(labels = y_label_fn) +
+    scale_x_date(limits = range(data$date)) + 
     labs(
       title = plot_title,
       x = NULL, 
@@ -305,7 +315,7 @@ tb_viz %>%
   ) %>% 
   right_join(
     tibble(
-      clean_name = c("consumer price index (cpi)", "median household income", "30-year fixed mortgage rate", "median home price"),
+      clean_name = c("consumer price index", "median household income", "30-year fixed mortgage rate", "median home price"),
       `collection frequency` = c("monthly", "annually", "weekly", "quarterly")
     ),
     by = "clean_name"
@@ -324,6 +334,7 @@ To account for (1), I put everything in a monthly frequency. Cubic splines were 
 #| fig-cap: "Harmonized and smoothed economic indicators over time. Green line shows the smoothed series. Gray line shows the raw series. Dollars are in nominal terms. Hover over the lines to see specific values."
 #| column: body
 #| out-width: "100%"
+#| warning: false
 
 tb_viz_nm = tb_nm %>%
   mutate(
@@ -332,7 +343,7 @@ tb_viz_nm = tb_nm %>%
       "MSPUS"         ~ "median home price",
       "MEHOINUSA646N" ~ "median household income",
       "MORTGAGE30US"  ~ "30-year fixed mortgage rate",
-      "CPIAUCSL"      ~ "consumer price index (cpi)",
+      "CPIAUCSL"      ~ "consumer price index",
       .default = symbol
     )
   )
@@ -399,6 +410,7 @@ createSyncedPlot = function(data, symbol_code, plot_color, y_label_fn) {
       linewidth = 0.8
     ) +
     scale_y_continuous(labels = y_label_fn) +
+    scale_x_date(limits = range(data$date)) + 
     labs(
       title = plot_title,
       x = NULL, 
@@ -412,23 +424,25 @@ createSyncedPlot = function(data, symbol_code, plot_color, y_label_fn) {
 # 3. Build Plots
 # ------------------------------------------------------------------------------
 
+fit_color = "#ffa500"
+
 p_home = createSyncedPlot(
-  tb_viz_nm, "MSPUS", "#006203",  
+  tb_viz_nm, "MSPUS", fit_color,  
   scales::label_dollar(scale = 1e-3, suffix = "k") 
 )
 
 p_income = createSyncedPlot(
-  tb_viz_nm, "MEHOINUSA646N", "#006203", 
+  tb_viz_nm, "MEHOINUSA646N", fit_color, 
   scales::label_dollar(scale = 1e-3, suffix = "k")
 )
 
 p_rate = createSyncedPlot(
-  tb_viz_nm, "MORTGAGE30US", "#006203", 
+  tb_viz_nm, "MORTGAGE30US", fit_color, 
   scales::label_number(accuracy = 0.01, scale = 1, suffix = "%")
 )
 
 p_cpi = createSyncedPlot(
-  tb_viz_nm, "CPIAUCSL", "#006203", 
+  tb_viz_nm, "CPIAUCSL", fit_color, 
   scales::label_number(accuracy = 0.01)
 )
 
@@ -473,6 +487,171 @@ girafe(
 
 These smoothed indicators are used to calculate the metrics in the following sections.
 
+### adjusted median home price
+
+Let's put the nominal median home price in `r cpi_baseline_year` dollars. I'll include a linear model to help us understand the trend over time.
+
+```{r}
+#| label: fig-adjusted-home-price
+#| fig-cap: !expr paste0("Adjusted median home prices (", cpi_baseline_year, " dollars) over time. Monthly forecasts with 3$\\sigma$ prediction interval. Linear model with 3$\\sigma$ confidence interval.")
+#| column: body
+#| out-width: "100%"
+
+# helper function for generating these interactive plots with trend lines:
+createForecastPlot = function(
+    data_main, 
+    data_lm, 
+    y_col, 
+    y_l_col, 
+    y_u_col, 
+    y_sd_col, 
+    title_text, 
+    y_label_fn = scales::label_number(accuracy = 0.01)
+) {
+  
+  # Helper for date formatting inside the function
+  fmt_date = function(d) format(d, "%b %Y")
+  
+  # 1. Prepare data with dynamic tooltips
+  # We use .data[[col_name]] to access columns by string variable
+  plot_data = data_main %>% 
+    mutate(
+      tooltip_text = ifelse(
+        .data[[y_sd_col]] == 0,
+        paste0(
+          "<b>", title_text, "</b><br>",
+          "date: ", fmt_date(date), "<br>",
+          "value: ", y_label_fn(.data[[y_col]]), "<br>"
+        ),
+        paste0(
+          "<b>", title_text, "</b><br>",
+          "date: ", fmt_date(date), "<br>",
+          "value: ", y_label_fn(.data[[y_col]]), "<br>",
+          "range: ", y_label_fn(.data[[y_l_col]]), " - ", y_label_fn(.data[[y_u_col]])
+        )
+      )
+    )
+    
+  # 2. Build the ggplot object
+  gg_interactive = plot_data %>% 
+    ggplot(aes(x = date, y = .data[[y_col]])) + 
+    
+    # --- Main Series ---
+    geom_ribbon(
+      aes(ymin = .data[[y_l_col]], ymax = .data[[y_u_col]]), 
+      alpha = 0.4, color = NA, fill = "gray50"
+    ) + 
+    geom_point_interactive(
+      aes(
+        tooltip = tooltip_text,
+        data_id = as.character(date)
+      ),
+      size = 3,        
+      alpha = 0.001,   # Invisible, for hover detection
+      color = "black" 
+    ) +
+    
+    # --- Linear Model Series ---
+    # Points for interaction
+    geom_point_interactive(
+      data = data_lm,
+      aes(
+        y = fit,
+        tooltip = paste0(
+          "<b>linear model fit</b><br>",
+          "date: ", fmt_date(date), "<br>",
+          "fit value: ", y_label_fn(fit), "<br>",
+          "fit range: ", y_label_fn(fit_lower), " - ", y_label_fn(fit_upper)
+        ),
+        data_id = paste0("lm-", as.character(date)) 
+      ),
+      size = 3, 
+      alpha = 0.001, 
+      color = "black"
+    ) +
+    # Visual Line (Main)
+    geom_line(color = "gray80", linewidth = 0.8) + 
+    
+    # Linear Model Visuals (Ribbon + Line)
+    geom_ribbon(
+      data = data_lm, 
+      aes(ymin = fit_lower, ymax = fit_upper), 
+      alpha = 0.4, color = NA, fill = "#ffa500"
+    ) + 
+    geom_line(
+      data = data_lm, 
+      aes(y = fit), 
+      color = "#ffa500", linewidth = 0.8
+    ) +
+    
+    # --- Formatting ---
+    scale_y_continuous(labels = y_label_fn) + # <--- Added this line
+    labs(
+      x = NULL,
+      y = NULL,
+      title = title_text
+    ) + 
+    theme(
+      plot.background = element_rect(fill = "#070607", color = "#070607"),
+      plot.title = element_text(color = "gray80", size = 16, face = "bold"),
+      plot.subtitle = element_text(color = "gray50", size = 12),
+      axis.text = element_text(color = "gray80"),
+      panel.background = element_rect(fill = "#070607", color = "#070607"),
+      panel.grid.major = element_line(color = "gray30", linewidth = 0.2),
+      panel.grid.minor = element_blank()
+    )
+
+  # 3. Render Girafe
+  girafe(
+    ggobj = gg_interactive,
+    width_svg = 9, 
+    height_svg = 3,
+    bg = "#070607",
+    options = list(
+      opts_hover(css = "fill: white; opacity: 1; stroke: none;"),
+      opts_tooltip(
+        css = "background-color: #070607; color: gray80; padding: 10px; border: 1px solid gray50; border-radius: 2px;"
+      ),
+      opts_toolbar(saveaspng = FALSE)
+    )
+  )
+}
+
+createForecastPlot(
+  data_main = tb_final01,
+  data_lm = hp_data$tb,
+  y_col = "home_real",
+  y_l_col = "home_real_l",
+  y_u_col = "home_real_u",
+  y_sd_col = "home_real_sd",
+  title_text = "adjusted median home price",
+  y_label_fn = scales::label_dollar(scale = 1e-3, suffix = "k")
+)
+```
+
+### adjusted household income
+
+Let's put the nominal median household income in `r cpi_baseline_year` dollars. I'll include a linear model to help us understand the trend over time.
+
+```{r}
+#| label: fig-adjusted-household income
+#| fig-cap: !expr paste0("Adjusted median household income (", cpi_baseline_year, " dollars) over time. Monthly forecasts with 3$\\sigma$ prediction interval. Linear model with 3$\\sigma$ confidence interval.")
+#| column: body
+#| out-width: "100%"
+
+createForecastPlot(
+  data_main = tb_final01,
+  data_lm = hi_data$tb,
+  y_col = "income_real",
+  y_l_col = "income_real_l",
+  y_u_col = "income_real_u",
+  y_sd_col = "income_real_sd",
+  title_text = "adjusted median household income",
+  y_label_fn = scales::label_dollar(scale = 1e-3, suffix = "k")
+)
+```
+
+
 ### price-to-income ratio
 
 We can use nominal dollars to calculate the price to income ratio. I'll include a linear model to help us understand the trend over time.
@@ -483,108 +662,15 @@ We can use nominal dollars to calculate the price to income ratio. I'll include 
 #| column: body
 #| out-width: "100%"
 
-# 1. Define formatting helpers
-fmt_num = scales::label_number(accuracy = 0.01)
-fmt_date = function(d) format(d, "%b %Y")
-
-# 2. Build the ggplot object with the Dark Theme applied
-gg_interactive = tb_final01 %>% 
-  mutate(
-    pi_tooltip = ifelse(
-      pi_sd == 0,
-      paste0(
-        "<b>price-to-income ratio</b><br>",
-        "date: ", fmt_date(date), "<br>",
-        "value: ", fmt_num(pi_ratio), "<br>"
-      ),
-      paste0(
-        "<b>price-to-income ratio</b><br>",
-        "date: ", fmt_date(date), "<br>",
-        "value: ", fmt_num(pi_ratio), "<br>",
-        "range: ", fmt_num(pi_l), " - ", fmt_num(pi_u)
-      )
-    )
-  ) %>% 
-  ggplot(aes(x = date, y = pi_ratio)) + 
-  geom_ribbon(
-    aes(ymin = pi_l, ymax = pi_u), alpha = 0.4, color = NA, fill = "gray50"
-    ) + 
-  geom_point_interactive(
-    aes(
-      tooltip = pi_tooltip,
-      data_id = as.character(date)
-    ),
-    size = 3,       
-    alpha = 0.001,   # Invisible
-    color = "black" # Hover color
-  ) +
-  # Interactive Layer for Linear Model
-  geom_point_interactive(
-    data = tb_lm_pi,
-    aes(
-      y = fit,
-      tooltip = paste0(
-        "<b>linear model fit</b><br>",
-        "date: ", fmt_date(date), "<br>",
-        "fit value: ", fmt_num(fit), "<br>",
-        "fit range: ", fmt_num(fit_lower), " - ", fmt_num(fit_upper)
-      ),
-      data_id = paste0("lm-", as.character(date)) 
-    ),
-    size = 3, 
-    alpha = 0.001, 
-    color = "black"
-  ) +
-  geom_line(color = "gray80", linewidth = 0.8) + 
-  
-  # --- SERIES 2: LINEAR MODEL (Orange) ---
-  
-  # Visual Ribbon
-  geom_ribbon(
-    data = tb_lm_pi, 
-    aes(ymin = fit_lower, ymax = fit_upper), 
-    alpha = 0.4, color = NA, fill = "#ffa500"
-  ) + 
-  
-  # Visual Line
-  geom_line(
-    data = tb_lm_pi, 
-    aes(y = fit), 
-    color = "#ffa500", linewidth = 0.8
-  ) +
-  
-  
-  
-  # --- Labels ---
-  labs(
-    x = NULL,
-    y = NULL,
-    title = "price-to-income ratio"
-  ) + 
-  theme(
-      plot.background = element_rect(fill = "#070607", color = "#070607"),
-      plot.title = element_text(color = "gray80", size = 16, face = "bold"),
-      plot.subtitle = element_text(color = "gray50", size = 12)
-    )
-
-# 3. Render with Dark Mode Tooltips
-girafe(
-  ggobj = gg_interactive,
-  width_svg = 9, 
-  height_svg = 3,
-  bg = "#070607", # Match the background color of the SVG
-  options = list(
-    
-    # Hover: White dot with transparency
-    opts_hover(css = "fill: white; opacity: 1; stroke: none;"),
-    
-    # Tooltip: Dark background (#070607) with gray text and border
-    opts_tooltip(
-      css = "background-color: #070607; color: gray80; padding: 10px; border: 1px solid gray50; border-radius: 2px;"
-    ),
-    
-    opts_toolbar(saveaspng = FALSE)
-  )
+createForecastPlot(
+  data_main = tb_final01,
+  data_lm = pi_data$tb,
+  y_col = "pi_ratio",
+  y_l_col = "pi_l",
+  y_u_col = "pi_u",
+  y_sd_col = "pi_sd",
+  title_text = "price-to-income ratio",
+  y_label_fn = scales::label_number(accuracy = 0.01)
 )
 ```
 
@@ -596,348 +682,15 @@ girafe(
 #| column: body
 #| out-width: "100%"
 
-# 2. Build the ggplot object with the Dark Theme applied
-gg_interactive = tb_final01 %>%
-  filter(!is.na(dti_ratio)) %>% 
-  mutate(
-    dti_tooltip = ifelse(
-      dti_sd == 0,
-      paste0(
-        "<b>debt-to-income ratio</b><br>",
-        "date: ", fmt_date(date), "<br>",
-        "value: ", fmt_num(dti_ratio), "<br>"
-      ),
-      paste0(
-        "<b>debt-to-income ratio</b><br>",
-        "date: ", fmt_date(date), "<br>",
-        "value: ", fmt_num(dti_ratio), "<br>",
-        "range: ", fmt_num(dti_l), " - ", fmt_num(dti_u)
-      )
-    )
-  ) %>% 
-  ggplot(aes(x = date, y = dti_ratio)) + 
-  geom_ribbon(
-    aes(ymin = dti_l, ymax = dti_u), alpha = 0.4, color = NA, fill = "gray50"
-    ) + 
-  geom_point_interactive(
-    aes(
-      tooltip = dti_tooltip,
-      data_id = as.character(date)
-    ),
-    size = 3,       
-    alpha = 0.001,   # Invisible
-    color = "black" # Hover color
-  ) +
-  # Interactive Layer for Linear Model
-  geom_point_interactive(
-    data = tb_lm_dti,
-    aes(
-      y = fit,
-      tooltip = paste0(
-        "<b>linear model fit</b><br>",
-        "date: ", fmt_date(date), "<br>",
-        "fit value: ", fmt_num(fit), "<br>",
-        "fit range: ", fmt_num(fit_lower), " - ", fmt_num(fit_upper)
-      ),
-      data_id = paste0("lm-", as.character(date)) 
-    ),
-    size = 3, 
-    alpha = 0.001, 
-    color = "black"
-  ) +
-  geom_line(color = "gray80", linewidth = 0.8) + 
-  geom_ribbon(
-    data = tb_lm_dti, 
-    aes(ymin = fit_lower, ymax = fit_upper), 
-    alpha = 0.3, color = NA, fill = "#ffa500"
-  ) + 
-  geom_line(
-    data = tb_lm_dti, 
-    aes(y = fit), 
-    color = "#ffa500", linewidth = 0.8
-  ) +
-  labs(
-    x = NULL,
-    y = NULL,
-    title = "debt-to-income ratio"
-  ) + 
-  theme(
-      plot.background = element_rect(fill = "#070607", color = "#070607"),
-      plot.title = element_text(color = "gray80", size = 16, face = "bold"),
-      plot.subtitle = element_text(color = "gray50", size = 12)
-    )
-
-# 3. Render with Dark Mode Tooltips
-girafe(
-  ggobj = gg_interactive,
-  width_svg = 9, 
-  height_svg = 3,
-  bg = "#070607", # Match the background color of the SVG
-  options = list(
-    
-    # Hover: White dot with transparency
-    opts_hover(css = "fill: white; opacity: 1; stroke: none;"),
-    
-    # Tooltip: Dark background (#070607) with gray text and border
-    opts_tooltip(
-      css = "background-color: #070607; color: gray80; padding: 10px; border: 1px solid gray50; border-radius: 2px;"
-    ),
-    
-    opts_toolbar(saveaspng = FALSE)
-  )
+createForecastPlot(
+  data_main = tb_final01 %>% filter(!is.na(dti_ratio)),
+  data_lm = di_data$tb,
+  y_col = "dti_ratio",
+  y_l_col = "dti_l",
+  y_u_col = "dti_u",
+  y_sd_col = "dti_sd",
+  title_text = "debt-to-income ratio",
+  y_label_fn = scales::label_percent(accuracy = 1)
 )
 ```
 
-
-# scratch-work
-
-```{r}
-# inflation adjusted median home prices
-tb1 = tb_nm %>% 
-  filter(symbol == "CPIAUCSL") %>% 
-  rename(cpi = price) %>% 
-  rename(cpi_sd = pred_sd) %>% 
-  select(-symbol)
-
-tb2 = tb_nm %>% 
-  filter(symbol == "MSPUS") %>% 
-  rename(ms_sd = pred_sd) %>% 
-  select(-symbol)
-
-# use 2025 dollars
-s = tb1 %>% 
-  filter(year(date) == 2025) %>% 
-  slice(1) %>% # January 2025
-  pull(cpi)
-
-tb_msia = tb1 %>%
-  left_join(tb2, by = "date") %>%
-  mutate(i25 = cpi / s) %>%
-  mutate(ia2025_price = price / i25) %>%
-  # calculate the propagated standard error (quadrature)
-  mutate(combined_sd = ia2025_price * sqrt((ms_sd / price)^2 + (cpi_sd / cpi)^2)) %>%
-  # apply 2-sigma to the resulting combined distribution
-  mutate(ia2025_price_l = ia2025_price - 3 * combined_sd) %>%
-  mutate(ia2025_price_u = ia2025_price + 3 * combined_sd) %>%
-  select(date, i25, price, cpi, ms_sd, cpi_sd, ia2025_price:ia2025_price_u) %>%
-  relocate(date, combined_sd)
-
-tb_final01 %>% 
-  ggplot(aes(date, home_real)) + 
-  geom_ribbon(aes(ymin = home_real_l, ymax = home_real_u), alpha = 0.4, color = NA, fill = "gray") + 
-  geom_line() + 
-  labs(
-    x = "",
-    y = "",
-    title = "inflation adjusted median sales price of a home (2025 dollars)",
-    subtitle = expression("monthly forecasts with 3" * sigma * " prediction intervals")
-  ) + 
-  scale_y_continuous(labels = scales::dollar)
-```
-
-What is the linear trend in the inflation adjusted median sales price of a home? Let's exclude the forecast data:
-
-```{r}
-lm_msia = lm(
-  ia2025_price ~ date,
-  data = tb_msia %>% filter(combined_sd == 0)
-)
-
-lm_msia %>% summary()
-
-tb_lm = lm_msia$model %>%
-  bind_cols(
-    predict(lm_msia, ., se.fit = T) %>%
-      magrittr::extract(c("fit", "se.fit")) %>%
-      as_tibble()
-  ) %>%
-  mutate(fit_upper = fit + 3*se.fit) %>%
-  mutate(fit_lower = fit - 3*se.fit)
-
-tb_msia %>%
-  ggplot(aes(date, ia2025_price)) +
-  geom_ribbon(
-    aes(ymin = ia2025_price_l, ymax = ia2025_price_u),
-    alpha = 0.4,
-    color = NA,
-    fill = "gray"
-    ) +
-  geom_line() +
-  geom_line(
-    data = tb_lm,
-    aes(y = fit),
-    color = "#ffa500"
-    ) +
-  geom_ribbon(
-    data = tb_lm,
-    aes(ymin = fit_lower, ymax = fit_upper),
-    alpha = 0.4,
-    color = NA,
-    fill = "#ffa500"
-    ) +
-  labs(
-    x = "",
-    y = "",
-    title = "inflation adjusted median sales price of a home (2025 dollars)",
-    subtitle = expression("monthly forecasts with 3" * sigma * " prediction intervals")
-  ) +
-  scale_y_continuous(labels = scales::dollar)
-```
-
-From the above model, we find that real median sales price (2025 dollars) of a home has increased by `r scales::dollar(lm_msia$coefficients[2]*365)` a year on average from `r format(min(tb_lm$date), "%B, %Y")` to `r format(max(tb_lm$date), "%B, %Y")`.
-
-For the monthly mortgage payment (30-year mortgage), we'll assume a 20% down payment so the mortgage will 80% of the home value:
-
-```{r}
-tb_msia_mr = tb_msia %>% 
-  left_join(
-    tb_nm %>% 
-      filter(symbol == "MORTGAGE30US") %>% 
-      select(-c(symbol, pred_sd)) %>% # most recent values, so no forecast error
-      rename(i = price),
-    by = "date"
-  ) %>% 
-  mutate(r_monthly = (i / 100) / 12) %>% 
-  mutate(n_payments = 30 * 12) %>% 
-  mutate(mortgage_factor = (r_monthly * (1 + r_monthly)^n_payments) / ((1 + r_monthly)^n_payments - 1)) %>% 
-  mutate(payment = (0.8 * ia2025_price) * mortgage_factor) %>% 
-  mutate(payment_l = (0.8 * ia2025_price_l) * mortgage_factor) %>% 
-  mutate(payment_u = (0.8 * ia2025_price_u) * mortgage_factor) %>% 
-  select(-c(r_monthly, n_payments))
-
-tb_msia_mr %>% 
-  drop_na() %>% 
-  ggplot(aes(date, payment)) + 
-  geom_ribbon(aes(ymin = payment_l, ymax = payment_u), alpha = 0.4, color = NA, fill = "gray") + 
-  geom_line() + 
-  labs(
-    x = "",
-    y = "",
-    title = "median monthly mortgage payment (2025 dollars)",
-    subtitle = expression("monthly forecasts with 3" * sigma * " prediction intervals")
-  ) + 
-  scale_y_continuous(labels = scales::dollar)
-```
-
-Now, let's get the percentage of a person's gross income that would go to their mortgage:
-
-```{r}
-tb_final = tb_msia_mr %>% 
-  left_join(
-    tb_nm %>% 
-      filter(symbol == "MEHOINUSA646N") %>% 
-      select(-symbol) %>% 
-      rename(income = price) %>% 
-      rename(income_sd = pred_sd),
-    by = "date"
-  ) %>% 
-  mutate(ia2025_income = income / i25) %>% 
-  mutate(income_real_sd = ia2025_income * sqrt((income_sd / income)^2 + (cpi_sd / cpi)^2)) %>% 
-  mutate(ia2025_income_l = ia2025_income - 3 * income_real_sd) %>% 
-  mutate(ia2025_income_u = ia2025_income + 3 * income_real_sd) %>% 
-  mutate(ia2025_income_m = ia2025_income / 12) %>% 
-  mutate(ratio = payment / ia2025_income_m) %>% 
-  mutate(ratio_sd = ratio * sqrt((ms_sd / price)^2 + (income_sd / income)^2)) %>% 
-  mutate(ratio_l = ratio - 3 * ratio_sd) %>% 
-  mutate(ratio_u = ratio + 3 * ratio_sd) %>% 
-  mutate(price_income_ratio = price / income) %>% 
-  # Calculate propagated standard deviation (Quadrature)
-  # Combining relative errors of Home Price and Income
-  mutate(pi_ratio_sd = price_income_ratio * sqrt((ms_sd / price)^2 + (income_sd / income)^2)) %>% 
-  # Apply 2-sigma bounds
-  mutate(pi_ratio_l = price_income_ratio - 3 * pi_ratio_sd) %>% 
-  mutate(pi_ratio_u = price_income_ratio + 3 * pi_ratio_sd)
-
-tb_final %>% 
-  ggplot(aes(date, ia2025_income)) + 
-  geom_ribbon(aes(ymin = ia2025_income_l, ymax = ia2025_income_u), alpha = 0.4, color = NA, fill = "gray") + 
-  geom_line() + 
-  labs(
-    x = "",
-    y = "",
-    title = "median household income (2025 dollars)",
-    subtitle = expression("monthly forecasts with 3" * sigma * " prediction intervals")
-  ) + 
-  scale_y_continuous(labels = scales::dollar)
-
-tb_final %>% 
-  drop_na() %>% 
-  ggplot(aes(date, ratio)) + 
-  geom_ribbon(aes(ymin = ratio_l, ymax = ratio_u), alpha = 0.4, color = NA, fill = "gray") + 
-  geom_line() + 
-  labs(
-    x = "",
-    y = "",
-    title = "percent of monthly gross income servicing mortgage",
-    subtitle = expression("monthly forecasts with 3" * sigma * " prediction intervals")
-  ) + 
-  scale_y_continuous(labels = scales::percent)
-```
-
-
-
-Lastly, let's look at the total cost of a house divided by the annual income:
-
-```{r}
-tb_final %>% 
-  ggplot(aes(date, price_income_ratio)) + 
-  geom_ribbon(aes(ymin = pi_ratio_l, ymax = pi_ratio_u), alpha = 0.4, color = NA, fill = "gray") + 
-  geom_line() + 
-  labs(
-    x = "",
-    y = "",
-    title = "price/income ratio",
-    subtitle = expression("monthly forecasts with 3" * sigma * " prediction intervals")
-  )
-```
-
-Let's build a model of the price/income ratio:
-
-```{r}
-lm_pir = lm(
-  price_income_ratio ~ date,
-  data = tb_final %>% filter(combined_sd == 0) # don't include forecasts
-)
-
-lm_pir %>% summary()
-
-tb_lm_pir = lm_pir$model %>% 
-  bind_cols(
-    predict(lm_pir, ., se.fit = T) %>% 
-      magrittr::extract(c("fit", "se.fit")) %>% 
-      as_tibble()
-  ) %>% 
-  mutate(fit_upper = fit + 3*se.fit) %>% 
-  mutate(fit_lower = fit - 3*se.fit)
-
-tb_final %>% 
-  ggplot(aes(date, price_income_ratio)) + 
-  geom_ribbon(aes(ymin = pi_ratio_l, ymax = pi_ratio_u), alpha = 0.4, color = NA, fill = "gray") + 
-  geom_line() + 
-  labs(
-    x = "",
-    y = "",
-    title = "price/income ratio",
-    subtitle = expression("monthly forecasts with 3" * sigma * " prediction intervals")
-  ) + 
-  geom_line(
-    data = tb_lm_pir,
-    aes(y = fit),
-    color = "#ffa500"
-    ) + 
-  geom_ribbon(
-    data = tb_lm_pir,
-    aes(ymin = fit_lower, ymax = fit_upper), 
-    alpha = 0.4, 
-    color = NA, 
-    fill = "#ffa500"
-    ) +
-  labs(
-    x = "",
-    y = "",
-    title = "price/income ratio",
-    subtitle = expression("monthly forecasts with 3" * sigma * " prediction intervals")
-  )
-```
-
-From the above model, we find that the ratio of the typical cost of a house to the typical household income has increased by `r round(lm_pir$coefficients[2]*365, 2)` a year on average from `r format(min(tb_lm_pir$date), "%B, %Y")` to `r format(max(tb_lm_pir$date), "%B, %Y")`.

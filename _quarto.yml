@@ -5,9 +5,11 @@ execute:
     echo: false
 
 website:
+  title: "echinos"
   site-url: "https://jon-kane.github.io/echinos"
   favicon: "images/logo_gray.png"
   navbar:
+    title: false
     logo: "images/logo_cropped.png"
     logo-href: "https://buymeacoffee.com/echinos"
     left:
@@ -23,6 +25,8 @@ format:
     toc: true
     toc-title: "on the page"
     language: 
+      title-block-published: "published"
+      title-block-modified: "last updated"
       code-links-title: "get the code"
     code-fold: true
     date-format: long
