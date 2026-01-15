@@ -634,7 +634,7 @@ createForecastPlot(
 Let's put the nominal median household income in `r cpi_baseline_year` dollars. I'll include a linear model to help us understand the trend over time.
 
 ```{r}
-#| label: fig-adjusted-household income
+#| label: fig-adjusted-household-income
 #| fig-cap: !expr paste0("Adjusted median household income (", cpi_baseline_year, " dollars) over time. Monthly forecasts with 3$\\sigma$ prediction interval. Linear model with 3$\\sigma$ confidence interval.")
 #| column: body
 #| out-width: "100%"
