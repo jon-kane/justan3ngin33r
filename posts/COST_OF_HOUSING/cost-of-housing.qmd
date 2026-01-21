@@ -145,21 +145,21 @@ di_data = getStuff("dti_ratio", tb_final01)
 
 At a national scale,
 
-- From `r format(min(hp_data$tb$date), '%B %Y')` to `r format(max(hp_data$tb$date), '%B %Y')`^[Some of the most recent observations are forecasts. See @tbl-observation-dates for details.], the real median home price (`r cpi_baseline_year` dollars) has **increased by `r scales::dollar(coef(hp_data$mod)[2]*365, 2)`  per year on average**. As of `r format(max(hp_data$tb$date), '%B %Y')`, the real median home price stands at `r scales::dollar(last(hp_data$tb$home_real), 2)`, placing it in the **`r scales::ordinal(hp_data$tp * 100)` percentile of all observations** in this period.
-- From `r format(min(hi_data$tb$date), '%B %Y')` to `r format(max(hi_data$tb$date), '%B %Y')`, the real median household income (`r cpi_baseline_year` dollars) has **increased by `r scales::dollar(coef(hi_data$mod)[2]*365, 2)`  per year on average**. As of `r format(max(hp_data$tb$date), '%B %Y')`, the real median household income stands at `r scales::dollar(last(hi_data$tb$income_real), 2)`, placing it in the **`r scales::ordinal(hi_data$tp * 100)` percentile of all observations** in this period.
-- From `r format(min(pi_data$tb$date), '%B %Y')` to `r format(max(pi_data$tb$date), '%B %Y')`, the price-to-income ratio of a home has **increased by `r round(coef(pi_data$mod)[2]*365*100, 2)` percentage points (pp) per year on average**. As of `r format(max(pi_data$tb$date), '%B %Y')`, the ratio stands at `r round(last(pi_data$tb$pi_ratio), 2)`^[Meaning the typical house costs the typical household `r round(last(pi_data$tb$pi_ratio), 2)` $\times$ their gross annual income], placing it in the **`r scales::ordinal(pi_data$tp * 100)` percentile of all observations** in this period.
+- From `r format(min(pi_data$tb$date), '%B %Y')` to `r format(max(pi_data$tb$date), '%B %Y')`^[Some of the most recent data used to compute these metrics come from forecasts. See @tbl-observation-dates for details on the range of the underlying data.], the price-to-income ratio of a home has **increased by `r round(coef(pi_data$mod)[2]*365*100, 2)` percentage points (pp) per year on average**. As of `r format(max(pi_data$tb$date), '%B %Y')`, the ratio stands at `r round(last(pi_data$tb$pi_ratio), 2)`^[Meaning the typical house costs the typical household `r round(last(pi_data$tb$pi_ratio), 2)` $\times$ their gross annual income], placing it in the **`r scales::ordinal(pi_data$tp * 100)` percentile of all observations** in this period.
 - From `r format(min(di_data$tb$date), '%B %Y')` to `r format(max(di_data$tb$date), '%B %Y')`, the mortgage debt-to-income ratio has **decreased by `r round(coef(di_data$mod)[2]*365*100, 2)` pp per year on average**. As of `r format(max(di_data$tb$date), '%B %Y')`, the ratio stands at `r round(last(di_data$tb$dti_ratio), 2)`^[Meaning the typical household would spend `r round(last(di_data$tb$dti_ratio), 2)` $\times$ their monthly income on the typical mortgage. This calculation assumes only interest and principal.], placing it in the **`r scales::ordinal(di_data$tp * 100)` percentile of all observations** in this period.
 
 # intro
 
-Much has been written recently on housing affordability, with much of it being negative.^[Here's a few: [CBS](https://www.cbsnews.com/news/affordable-housing-home-prices-bankrate/), [NBC](https://www.nbcnews.com/business/real-estate/exactly-unaffordable-todays-housing-market-s-getting-worse-rcna207007), and [FOX](https://www.foxbusiness.com/lifestyle/only-28-us-homes-now-affordable-typical-american-household-buying-power-drops)] Aside from the [tendency of news organizations to produce negative content](https://hai.stanford.edu/news/the-data-behind-your-doom-scroll-how-negative-news-takes-over-your-feed), I think what is lost in these reports is historical context: where were we, and where are we now? Even when the historical context is present, metrics may be used that, if not interpreted carefully, can be misleading. 
+Much has been written recently on housing affordability, with much of it being negative.^[Here's a few: [CBS](https://www.cbsnews.com/news/affordable-housing-home-prices-bankrate/), [NBC](https://www.nbcnews.com/business/real-estate/exactly-unaffordable-todays-housing-market-s-getting-worse-rcna207007), and [FOX](https://www.foxbusiness.com/lifestyle/only-28-us-homes-now-affordable-typical-american-household-buying-power-drops).] Aside from the [tendency of news organizations to produce negative content](https://hai.stanford.edu/news/the-data-behind-your-doom-scroll-how-negative-news-takes-over-your-feed), I think what is lost in these reports is historical context: where were we, and where are we now? Even when the historical context is present, metrics may be used that, if not interpreted carefully, can be misleading. For instance, [longtermtrends.com](https://www.longtermtrends.com/home-price-median-annual-income-ratio/) gives a chart that shows the ratio of the [S&P/Case-Shiller Home Price Index](https://www.spglobal.com/spdji/en/indices/indicators/sp-cotality-case-shiller-us-national-home-price-nsa-index/#overview) to the median household income. This index is used a lot since it's high-quality and has data that dates back to 1890. However, the problem here is that the Case-Shiller index is a weighted average. The distribution of home values tend to be right skewed, so an average will be greater than the median (the *typical* house). So, dividing the average by the median produces a price-to-income ratio that is a bit more pessimistic. *The typical person is buying the typical house, not the average house.*
 
-For instance, [longtermtrends.com](https://www.longtermtrends.com/home-price-median-annual-income-ratio/) gives a chart that shows the ratio of the [S&P/Case-Shiller Home Price Index](https://www.spglobal.com/spdji/en/indices/indicators/sp-cotality-case-shiller-us-national-home-price-nsa-index/#overview) to the median household income. This index is used a lot since it's high-quality and has data that dates back to 1890. However, the problem here is that the Case-Shiller index is a weighted average. The distribution of home values tend to be right skewed, so an average will be greater than the median (the *typical* house). So, dividing the average by the median produces a price-to-income ratio that is a bit more pessimistic. *The typical person is buying the typical house, not the average house.*
-
-In order to provide some clarity on the question of housing affordability, I'm going to look at two metrics:
+In order to provide some clarity on the question of housing affordability, I'm going to look at four metrics in particular:
 
 1. The ratio of the typical cost of a house to the typical household income. In this article, I'll refer to it as the *price-to-income ratio*.
 2. The proportion of a person's monthly income that would be dedicated to their monthly mortgage. For my analysis, this will be limited to only interest and principal^[I'm interested in having a better picture of this by incorporating property taxes and home insurance costs if someone could get me the data...], and will assume a 20% downpayment, so a loan on 80% the value of a house. I'll refer to it as the *debt-to-income ratio* in the article.
+3. The real^[`r cpi_baseline_year` dollars] median home price over time.
+4. The real median household income over time.
+
+(1) and (2) are the most important metrics and incorporate (3) and (4). However, (3) and (4) can help provide some context to better understand (1) and (2).
 
 # analysis
 
@@ -486,13 +486,15 @@ girafe(
 
 These smoothed indicators are used to calculate the metrics in the following sections.
 
-### real median home price
+### the metrics
+
+#### real median home price
 
 Let's put the nominal median home price in `r cpi_baseline_year` dollars. I'll include a linear model to help us understand the trend over time.
 
 ```{r}
 #| label: fig-real-home-price
-#| fig-cap: !expr paste0("Real median home prices (", cpi_baseline_year, " dollars) over time. Monthly forecasts with 3$\\sigma$ prediction interval. Linear model with 3$\\sigma$ confidence interval.")
+#| fig-cap: !expr paste0("Real median home prices (", cpi_baseline_year, " dollars) over time. Monthly forecasts with 3$\\sigma$ prediction interval. Linear model with 3$\\sigma$ confidence interval. Hover over the lines to see the percentile of the observation and ranges for forecasts.")
 #| column: body
 #| out-width: "100%"
 
@@ -505,7 +507,8 @@ createForecastPlot = function(
     y_u_col, 
     y_sd_col, 
     title_text, 
-    y_label_fn = scales::label_number(accuracy = 0.01)
+    y_label_fn = scales::label_number(accuracy = 0.01),
+    dp
 ) {
   
   # Helper for date formatting inside the function
@@ -514,18 +517,21 @@ createForecastPlot = function(
   # 1. Prepare data with dynamic tooltips
   # We use .data[[col_name]] to access columns by string variable
   plot_data = data_main %>% 
+    mutate(pr = round(dp$getPercentile(.data[[y_col]]), 2)*100) %>% 
     mutate(
       tooltip_text = ifelse(
         .data[[y_sd_col]] == 0,
         paste0(
           "<b>", title_text, "</b><br>",
           "date: ", fmt_date(date), "<br>",
-          "value: ", y_label_fn(.data[[y_col]]), "<br>"
+          "value: ", y_label_fn(.data[[y_col]]), "<br>",
+          "percentile: ", pr
         ),
         paste0(
           "<b>", title_text, "</b><br>",
           "date: ", fmt_date(date), "<br>",
           "value: ", y_label_fn(.data[[y_col]]), "<br>",
+          "percentile: ", pr, "<br>",
           "range: ", y_label_fn(.data[[y_l_col]]), " - ", y_label_fn(.data[[y_u_col]])
         )
       )
@@ -624,17 +630,51 @@ createForecastPlot(
   y_u_col = "home_real_u",
   y_sd_col = "home_real_sd",
   title_text = "real median home price",
-  y_label_fn = scales::label_dollar(scale = 1e-3, suffix = "k")
+  y_label_fn = scales::label_dollar(scale = 1e-3, suffix = "k"),
+  dp = hp_data
 )
 ```
 
-### real household income
+From `r format(min(hp_data$tb$date), '%B %Y')` to `r format(max(hp_data$tb$date), '%B %Y')`, the real median home price has **increased by `r scales::dollar(coef(hp_data$mod)[2]*365, 2)`  per year on average**. This translates to roughly `r round((coef(hp_data$mod)[2]*365/hp_data$tb$home_real[1])*100, 2)` pp per year. As of `r format(max(hp_data$tb$date), '%B %Y')`, the real median home price stands at `r scales::dollar(last(hp_data$tb$home_real), 2)`, placing it in the **`r scales::ordinal(hp_data$tp * 100)` percentile of all observations** in this period. 
+
+What complicates this analysis is that the *typical* house from 1950 looks much different than the *typical* house from today. Across the decades, houses look pretty different, whether that be square footage or amenities. Nano Banana^[[Nano Banana](https://gemini.google/overview/image-generation/) is an AI image generator from Google. I thought these images were pretty good, but if you want some real examples you could peruse the book [House and Plans, 1950](https://archive.org/details/YorkHouseandPlans19500001) and just look at new builds on [Zillow](https://www.zillow.com/homes/).] can give us a visual sense of these differences: 
+
+::: {#fig-housing-comparison layout-ncol=2}
+![](/posts/COST_OF_HOUSING/images/1950s-home.png)
+
+![](/posts/COST_OF_HOUSING/images/2020s-home.png)
+
+Visual comparison of typical homes from the 1950's (left) and 2020's (right)
+:::
+
+A few key figures on these differences:
+
+| feature | 1950's home | 2020's home |
+|:---|:---|:---|
+| median size | [under 1,000 sq ft](https://www.npr.org/2006/07/04/5525283/behind-the-ever-expanding-american-dream-house) | [over 2,000 sq ft](https://fred.stlouisfed.org/series/COMPSFLAM1FQ) |
+| [complete plumbing](https://www.census.gov/data/tables/time-series/dec/coh-plumbing.html) | 66% | 99% |
+| air conditioning | [under 2%](https://www.sciencedirect.com/science/article/pii/S0014498308000132) | [over 90%](https://www.eia.gov/consumption/residential/data/2020/hc/pdf/HC%207.1.pdf) |
+
+: Comparison of housing features over time {#tbl-housing-features}
+
+[Andrew Latham](https://www.supermoney.com/author/andrew-latham) did a [great analysis on housing affordability](https://www.supermoney.com/inflation-adjusted-home-prices) where he found that the price per square foot of a house (ignoring amenities) from 1978-2023 grew by 20% which works out to roughly 0.44 pp per year which is about `r round(0.44/((coef(hp_data$mod)[2]*365/hp_data$tb$home_real[1])*100), 2)` the rate of house prices in general. 
+
+Of course the problem in all this, is you can't buy a 1950's house today^[Not that anyone would want to!]; the option for a smaller house just isn't available. Those aren't the houses being built^[The median square footage of new builds has been [decreasing over the last decade](https://fred.stlouisfed.org/series/COMPSFLAM1FQ). Hopefully this is a trend that will continue if there is an appetite for it.], so buyers are left with nicer, more expensive houses.
+
+
+Fortunately, we are coming out of a bubble which peaked in early 2022, so prices are cheaper today than a few years ago. However, unless housing policy/supply changes, we should expect housing to get more expensive. 
+
+ 
+
+
+
+#### real household income
 
 Let's put the nominal median household income in `r cpi_baseline_year` dollars. I'll include a linear model to help us understand the trend over time.
 
 ```{r}
 #| label: fig-real-household-income
-#| fig-cap: !expr paste0("real median household income (", cpi_baseline_year, " dollars) over time. Monthly forecasts with 3$\\sigma$ prediction interval. Linear model with 3$\\sigma$ confidence interval.")
+#| fig-cap: !expr paste0("real median household income (", cpi_baseline_year, " dollars) over time. Monthly forecasts with 3$\\sigma$ prediction interval. Linear model with 3$\\sigma$ confidence interval. Hover over the lines to see the percentile of the observation and ranges for forecasts.")
 #| column: body
 #| out-width: "100%"
 
@@ -646,18 +686,20 @@ createForecastPlot(
   y_u_col = "income_real_u",
   y_sd_col = "income_real_sd",
   title_text = "real median household income",
-  y_label_fn = scales::label_dollar(scale = 1e-3, suffix = "k")
+  y_label_fn = scales::label_dollar(scale = 1e-3, suffix = "k"),
+  dp = hi_data
 )
 ```
 
+From `r format(min(hi_data$tb$date), '%B %Y')` to `r format(max(hi_data$tb$date), '%B %Y')`, the real median household income has **increased by `r scales::dollar(coef(hi_data$mod)[2]*365, 2)`  per year on average**. As of `r format(max(hp_data$tb$date), '%B %Y')`, the real median household income stands at `r scales::dollar(last(hi_data$tb$income_real), 2)`, placing it in the **`r scales::ordinal(hi_data$tp * 100)` percentile of all observations** in this period.
 
-### price-to-income ratio
+#### price-to-income ratio
 
 We can use nominal dollars to calculate the price to income ratio. I'll include a linear model to help us understand the trend over time.
 
 ```{r}
 #| label: fig-price-to-income-ratio
-#| fig-cap: "Price-to-income ratio over time. Monthly forecasts with 3$\\sigma$ prediction interval. Linear model with 3$\\sigma$ confidence interval."
+#| fig-cap: "Price-to-income ratio over time. Monthly forecasts with 3$\\sigma$ prediction interval. Linear model with 3$\\sigma$ confidence interval. Hover over the lines to see the percentile of the observation and ranges for forecasts."
 #| column: body
 #| out-width: "100%"
 
@@ -669,15 +711,18 @@ createForecastPlot(
   y_u_col = "pi_u",
   y_sd_col = "pi_sd",
   title_text = "price-to-income ratio",
-  y_label_fn = scales::label_number(accuracy = 0.01)
+  y_label_fn = scales::label_number(accuracy = 0.01),
+  dp = pi_data
 )
 ```
 
-### debt-to-income ratio
+From `r format(min(pi_data$tb$date), '%B %Y')` to `r format(max(pi_data$tb$date), '%B %Y')`, the price-to-income ratio of a home has **increased by `r round(coef(pi_data$mod)[2]*365*100, 2)` percentage points (pp) per year on average**. As of `r format(max(pi_data$tb$date), '%B %Y')`, the ratio stands at `r round(last(pi_data$tb$pi_ratio), 2)`^[Meaning the typical house costs the typical household `r round(last(pi_data$tb$pi_ratio), 2)` $\times$ their gross annual income], placing it in the **`r scales::ordinal(pi_data$tp * 100)` percentile of all observations** in this period.
+
+#### debt-to-income ratio
 
 ```{r}
 #| label: fig-debt-to-income-ratio
-#| fig-cap: "Debt-to-income ratio over time. Monthly forecasts with 3$\\sigma$ prediction interval. Linear model with 3$\\sigma$ confidence interval."
+#| fig-cap: "Debt-to-income ratio over time. Monthly forecasts with 3$\\sigma$ prediction interval. Linear model with 3$\\sigma$ confidence interval. Hover over the lines to see the percentile of the observation and ranges for forecasts."
 #| column: body
 #| out-width: "100%"
 
@@ -689,7 +734,9 @@ createForecastPlot(
   y_u_col = "dti_u",
   y_sd_col = "dti_sd",
   title_text = "debt-to-income ratio",
-  y_label_fn = scales::label_percent(accuracy = 1)
+  y_label_fn = scales::label_percent(accuracy = 1),
+  dp = di_data
 )
 ```
 
+From `r format(min(di_data$tb$date), '%B %Y')` to `r format(max(di_data$tb$date), '%B %Y')`, the mortgage debt-to-income ratio has **decreased by `r round(coef(di_data$mod)[2]*365*100, 2)` pp per year on average**. As of `r format(max(di_data$tb$date), '%B %Y')`, the ratio stands at `r round(last(di_data$tb$dti_ratio), 2)`^[Meaning the typical household would spend `r round(last(di_data$tb$dti_ratio), 2)` $\times$ their monthly income on the typical mortgage. This calculation assumes only interest and principal.], placing it in the **`r scales::ordinal(di_data$tp * 100)` percentile of all observations** in this period.
