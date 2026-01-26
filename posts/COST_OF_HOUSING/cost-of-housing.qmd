@@ -1,7 +1,7 @@
 ---
 title: "How expensive is housing in the US?"
 description: "An examination of the cost of housing in the US over time."
-categories: [economics, housing, deep dive]
+categories: [deep dive, housing, economics]
 format: html
 date-modified: last-modified
 date-format: long
@@ -11,8 +11,9 @@ code-links:
     href: "https://github.com/jon-kane/echinos/tree/main/posts/COST_OF_HOUSING"
 ---
 
-::: {.callout-warning}
+::: callout-warning
 ## Work in Progress
+
 I am actively updating this post. Content will change as I work my way through this article.
 :::
 
@@ -145,43 +146,43 @@ di_data = getStuff("dti_ratio", tb_final01)
 
 At a national scale,
 
-- From `r format(min(pi_data$tb$date), '%B %Y')` to `r format(max(pi_data$tb$date), '%B %Y')`^[Some of the most recent data used to compute these metrics come from forecasts. See @tbl-observation-dates for details on the range of the underlying data.], the price-to-income ratio of a home has **increased by `r round(coef(pi_data$mod)[2]*365*100, 2)` percentage points (pp) per year on average**. As of `r format(max(pi_data$tb$date), '%B %Y')`, the ratio stands at `r round(last(pi_data$tb$pi_ratio), 2)`^[Meaning the typical house costs the typical household `r round(last(pi_data$tb$pi_ratio), 2)` $\times$ their gross annual income], placing it in the **`r scales::ordinal(pi_data$tp * 100)` percentile of all observations** in this period.
-- From `r format(min(di_data$tb$date), '%B %Y')` to `r format(max(di_data$tb$date), '%B %Y')`, the mortgage debt-to-income ratio has **decreased by `r round(coef(di_data$mod)[2]*365*100, 2)` pp per year on average**. As of `r format(max(di_data$tb$date), '%B %Y')`, the ratio stands at `r round(last(di_data$tb$dti_ratio), 2)`^[Meaning the typical household would spend `r round(last(di_data$tb$dti_ratio), 2)` $\times$ their monthly income on the typical mortgage. This calculation assumes only interest and principal.], placing it in the **`r scales::ordinal(di_data$tp * 100)` percentile of all observations** in this period.
+-   From `r format(min(pi_data$tb$date), '%B %Y')` to `r format(max(pi_data$tb$date), '%B %Y')`^[Some of the most recent data used to compute these metrics come from forecasts. See @tbl-observation-dates for details on the range of the underlying data.], the price-to-income ratio of a home has **increased by `r round(coef(pi_data$mod)[2]*365*100, 2)` percentage points (pp) per year on average**. As of `r format(max(pi_data$tb$date), '%B %Y')`, the ratio stands at `r round(last(pi_data$tb$pi_ratio), 2)`^[Meaning the typical house costs the typical household `r round(last(pi_data$tb$pi_ratio), 2)` $\times$ their gross annual income], placing it in the **`r scales::ordinal(pi_data$tp * 100)` percentile of all observations** in this period.
+-   From `r format(min(di_data$tb$date), '%B %Y')` to `r format(max(di_data$tb$date), '%B %Y')`, the mortgage debt-to-income ratio has **decreased by `r round(coef(di_data$mod)[2]*365*100, 2)` pp per year on average**. As of `r format(max(di_data$tb$date), '%B %Y')`, the ratio stands at `r round(last(di_data$tb$dti_ratio), 2)`^[Meaning the typical household would spend `r round(last(di_data$tb$dti_ratio), 2)` $\times$ their monthly income on the typical mortgage. This calculation assumes only interest and principal.], placing it in the **`r scales::ordinal(di_data$tp * 100)` percentile of all observations** in this period.
 
 # intro
 
-Much has been written recently on housing affordability, with much of it being negative.^[Here's a few: [CBS](https://www.cbsnews.com/news/affordable-housing-home-prices-bankrate/), [NBC](https://www.nbcnews.com/business/real-estate/exactly-unaffordable-todays-housing-market-s-getting-worse-rcna207007), and [FOX](https://www.foxbusiness.com/lifestyle/only-28-us-homes-now-affordable-typical-american-household-buying-power-drops).] Aside from the [tendency of news organizations to produce negative content](https://hai.stanford.edu/news/the-data-behind-your-doom-scroll-how-negative-news-takes-over-your-feed), I think what is lost in these reports is historical context: where were we, and where are we now? Even when the historical context is present, metrics may be used that, if not interpreted carefully, can be misleading. For instance, [longtermtrends.com](https://www.longtermtrends.com/home-price-median-annual-income-ratio/) gives a chart that shows the ratio of the [S&P/Case-Shiller Home Price Index](https://www.spglobal.com/spdji/en/indices/indicators/sp-cotality-case-shiller-us-national-home-price-nsa-index/#overview) to the median household income. This index is used a lot since it's high-quality and has data that dates back to 1890. However, the problem here is that the Case-Shiller index is a weighted average. The distribution of home values tend to be right skewed, so an average will be greater than the median (the *typical* house). So, dividing the average by the median produces a price-to-income ratio that is a bit more pessimistic. *The typical person is buying the typical house, not the average house.*
+Much has been written recently on housing affordability, with much of it being negative^[Here's a few: [CBS](https://www.cbsnews.com/news/affordable-housing-home-prices-bankrate/), [NBC](https://www.nbcnews.com/business/real-estate/exactly-unaffordable-todays-housing-market-s-getting-worse-rcna207007), and [FOX](https://www.foxbusiness.com/lifestyle/only-28-us-homes-now-affordable-typical-american-household-buying-power-drops).]. Aside from the [tendency of news organizations to produce negative content](https://hai.stanford.edu/news/the-data-behind-your-doom-scroll-how-negative-news-takes-over-your-feed), I think what is lost in these reports is historical context: where were we, and where are we now? Even when the historical context is present, metrics may be used that, if not interpreted carefully, can be misleading. For instance, [longtermtrends.com](https://www.longtermtrends.com/home-price-median-annual-income-ratio/) gives a chart that shows the ratio of the [S&P/Case-Shiller Home Price Index](https://www.spglobal.com/spdji/en/indices/indicators/sp-cotality-case-shiller-us-national-home-price-nsa-index/#overview) to the median household income. This index is used a lot since it's high-quality and has data that dates back to 1890. However, the problem here is that the Case-Shiller index is a weighted average. The distribution of home values tend to be right skewed, so an average will be greater than the median (the *typical* house). So, dividing the average by the median produces a price-to-income ratio that is a bit more pessimistic. *The typical person is buying the typical house, not the average house.*
 
 In order to provide some clarity on the question of housing affordability, I'm going to look at four metrics in particular:
 
-1. The real^[`r cpi_baseline_year` dollars] median home price over time.
-2. The real median household income over time.
-3. The ratio of the typical cost of a house to the typical household income. In this article, I'll refer to it as the *price-to-income ratio*.
-4. The proportion of a person's monthly income that would be dedicated to their monthly mortgage. For my analysis, this will be limited to only interest and principal^[I'm interested in having a better picture of this by incorporating property taxes and home insurance costs if someone could get me the data...], and will assume a 20% downpayment, so a loan on 80% the value of a house. I'll refer to it as the *debt-to-income ratio* in the article.
+1.  The real^[`r cpi_baseline_year` dollars] median home price over time.
+2.  The real median household income over time.
+3.  The ratio of the typical cost of a house to the typical household income. In this article, I'll refer to it as the *price-to-income ratio*.
+4.  The proportion of a person's monthly income that would be dedicated to their monthly mortgage. For my analysis, this will be limited to only interest and principal^[I'm interested in having a better picture of this by incorporating property taxes and home insurance costs if someone could get me the data...], and will assume a 20% downpayment, so a loan on 80% the value of a house. I'll refer to it as the *debt-to-income ratio* in the article.
 
-The last two metrics are the most important and incorporate the top two. However, the top two can give us better context in and of themselves. 
+The last two metrics are the most important and incorporate the top two. However, the top two can give us better context in and of themselves. EXPLAIN HOW THESE METRICS WILL BE USED IN THE ANALYSIS. EXPLAIN THE FLOW OF THE DOCUMENT.
 
 # analysis
 
 I'm *planning* to examine this at three different geographic scales:
 
-- national
-- state
-- county
+-   national (IN PROGRESS)
+-   state (NOT STARTED)
+-   county (NOT STARTED)
 
 ## national scale
 
-### the data
+### data
 
 The data I'm using is mostly from the [FRED](https://fred.stlouisfed.org/). I've supplemented some of these series with data extending further back to get a more complete picture. Below are the data series and where I got the supplemental data:
 
-- [CPIAUCSL](https://fred.stlouisfed.org/series/CPIAUCSL): Consumer Price Index for All Urban Consumers: All Items in U.S. City Average
-- [MEHOINUSA646N](https://fred.stlouisfed.org/series/MEHOINUSA646N): Median Household Income in the United States
-  - Years 1947-1965 are from [p.877 of a US Census Bureau publication](https://www2.census.gov/library/publications/1999/compendia/statab/119ed/tables/sec31.pdf).
-  - Years 1967-1983 are also from the [US Census Bureau](https://www2.census.gov/programs-surveys/demo/tables/p60/276/tableD1.xlsx)
-- [MORTGAGE30US](https://fred.stlouisfed.org/series/MORTGAGE30US): 30-Year Fixed Rate Mortgage Average^[Unfortunately, there is no high-frequency median equivalent to this data that I know of. Fortunately, there are some restrictive filters (e.g. 20% down, excellent credit, excluding jumbo loans) on which data to use that removes large outliers making the mean more centered. See [here](https://www.freddiemac.com/pmms#faqs) for more details] in the United States
-- [MSPUS](https://fred.stlouisfed.org/series/MSPUS): Median Sales Price of Houses Sold for the United States
-  - Years 1953-1962 are from few different indices^[The [NAR Median Sales Price of Existing Homes](http://www.realtor.org/topics/existing-home-sales), [Shiller's NSA Home Sale Index](http://www.econ.yale.edu/~shiller/data.htm), and the [FHFA's NSA Existing Home Sale Index](https://www.fhfa.gov/DataTools/Downloads/Pages/House-Price-Index.aspx)] that have been combined. The author explains the process [here](https://dqydj.com/historical-home-prices/).
+-   [CPIAUCSL](https://fred.stlouisfed.org/series/CPIAUCSL): Consumer Price Index for All Urban Consumers: All Items in U.S. City Average
+-   [MEHOINUSA646N](https://fred.stlouisfed.org/series/MEHOINUSA646N): Median Household Income in the United States
+    -   Years 1947-1965 are from [p.877 of a US Census Bureau publication](https://www2.census.gov/library/publications/1999/compendia/statab/119ed/tables/sec31.pdf).
+    -   Years 1967-1983 are also from the [US Census Bureau](https://www2.census.gov/programs-surveys/demo/tables/p60/276/tableD1.xlsx)
+-   [MORTGAGE30US](https://fred.stlouisfed.org/series/MORTGAGE30US): 30-Year Fixed Rate Mortgage Average^[Unfortunately, there is no high-frequency median equivalent to this data that I know of. Fortunately, there are some restrictive filters (e.g. 20% down, excellent credit, excluding jumbo loans) on which data to use that removes large outliers making the mean more centered. See [here](https://www.freddiemac.com/pmms#faqs) for more details.] in the United States
+-   [MSPUS](https://fred.stlouisfed.org/series/MSPUS): Median Sales Price of Houses Sold for the United States
+    -   Years 1953-1962 are from few different indices^[The [NAR Median Sales Price of Existing Homes](http://www.realtor.org/topics/existing-home-sales), [Shiller's NSA Home Sale Index](http://www.econ.yale.edu/~shiller/data.htm), and the [FHFA's NSA Existing Home Sale Index](https://www.fhfa.gov/DataTools/Downloads/Pages/House-Price-Index.aspx).] that have been combined. The author explains the process [here](https://dqydj.com/historical-home-prices/).
 
 Let's take a look at the data below:
 
@@ -299,8 +300,8 @@ girafe(
 
 There are a few things that need to be handled before analysis:
 
-1. The data is captured at different frequencies. 
-2. Not all the data is recent.^[The 30-year fixed mortgage rate is the most egregious offender. The reason for this, is that Freddie Mac began surveying lenders on mortgage rates in April 1971, making this the earliest date for which consistent, nationwide data is available.]
+1.  The data is captured at different frequencies.
+2.  The data begins^[The 30-year fixed mortgage rate is the most egregious offender. The reason for this, is that Freddie Mac began surveying lenders on mortgage rates in April 1971, making this the earliest date for which consistent, nationwide data is available.] and ends at different dates, with not all the data is recent.
 
 ```{r}
 #| label: tbl-observation-dates
@@ -326,7 +327,7 @@ tb_viz %>%
   )
 ```
 
-To account for (1), I put everything in a monthly frequency. Cubic splines were used for quarterly and annual data, while weekly data was averaged. For (2), I first smoothed each series using [LOESS](https://en.wikipedia.org/wiki/Local_regression) then modeled each series using [ARIMA](https://en.wikipedia.org/wiki/Autoregressive_integrated_moving_average) to produce estimates for the most recent date available (`r format(max(tb_final01$date), '%B %Y')`). These estimates should be taken with a grain of salt, though I include $3 \sigma$ prediction intervals to capture the uncertainty. 
+To account for (1), I put everything in a monthly frequency. Cubic splines were used for quarterly and annual data, while weekly data was averaged. For (2), I first smoothed each series using [LOESS](https://en.wikipedia.org/wiki/Local_regression) then modeled each series using [ARIMA](https://en.wikipedia.org/wiki/Autoregressive_integrated_moving_average) to produce estimates for the most recent date available (`r format(max(tb_final01$date), '%B %Y')`). These estimates should be taken with a grain of salt, though I include $3 \sigma$ prediction intervals to capture the uncertainty.
 
 ```{r}
 #| label: fig-national-indicators-harmonized
@@ -486,7 +487,7 @@ girafe(
 
 These smoothed indicators are used to calculate the metrics in the following sections.
 
-### the metrics
+### metrics
 
 #### real median home price
 
@@ -635,11 +636,11 @@ createForecastPlot(
 )
 ```
 
-From `r format(min(hp_data$tb$date), '%B %Y')` to `r format(max(hp_data$tb$date), '%B %Y')`, the real median home price has **increased by `r scales::dollar(coef(hp_data$mod)[2]*365, 2)`  per year on average**. This translates to roughly `r round((coef(hp_data$mod)[2]*365/hp_data$tb$home_real[1])*100, 2)` pp per year. As of `r format(max(hp_data$tb$date), '%B %Y')`, the real median home price stands at `r scales::dollar(last(hp_data$tb$home_real), 2)`, placing it in the **`r scales::ordinal(hp_data$tp * 100)` percentile of all observations** in this period. 
+From `r format(min(hp_data$tb$date), '%B %Y')` to `r format(max(hp_data$tb$date), '%B %Y')`, the real median home price has **increased by `r scales::dollar(coef(hp_data$mod)[2]*365, 2)` per year on average**. This translates to roughly `r round((coef(hp_data$mod)[2]*365/hp_data$tb$home_real[1])*100, 2)` pp per year. As of `r format(max(hp_data$tb$date), '%B %Y')`, the real median home price stands at `r scales::dollar(last(hp_data$tb$home_real), 2)`, placing it in the **`r scales::ordinal(hp_data$tp * 100)` percentile of all observations** in this period.
 
-What complicates this analysis is that the *typical* house from the 1950s looks much different than the *typical* house from today. Across the decades, houses look pretty different, whether that be square footage or amenities. To get a visual sense of these differences: 
+What complicates this analysis is that the *typical* house from the 1950s looks much different than the *typical* house from today. Across the decades, houses look pretty different, whether that be square footage or amenities. To get a visual sense of these differences:
 
-::: {#fig-housing-comparison layout-ncol=2}
+::: {#fig-housing-comparison layout-ncol="2"}
 ![The "rambler" (a ranch house) was the [most popular](https://www.nps.gov/articles/000/identifying-the-1950s-ranch-house-interior-as-a-cultural-resource.htm#:~:text=It%20was%20the%20ranch%20house,of%20these%20were%20ranch%20houses.) style of home for new builds in the 1950s. The home pictured has 3 beds, 1 bath, and is 1,234 square feet (excluding the 1-car garage). Images from [Town and Country Homes to Fit Your Budget, 1954](https://archive.org/details/towncountryhomes00home/page/n59/mode/2up) p. 60-61.](/posts/COST_OF_HOUSING/images/1950s-home.svg)
 
 ![The modern farmhouse is considered one of the [most popular](https://www.inman.com/2023/07/07/times-names-modern-farmhouse-defining-residential-style-of-2020s/#:~:text=The%20modern%20farmhouse%2C%20with%20its,July%2007%2C%202023) styles of home for new builds in the 2020s. The home pictured has 3 beds, 2.5 baths, and is 1,959 square feet (excluding the 2-car garage). Images from [Architectural Designs](https://www.architecturaldesigns.com/house-plans/single-story-modern-farmhouse-plan-with-3-bedrooms-under-2000-sq-ft-69194am).](/posts/COST_OF_HOUSING/images/2020s-home.svg)
@@ -650,19 +651,18 @@ Visual comparison of popular homes from the 1950s and 2020s.
 A few key figures on these differences:
 
 | feature | 1950's home | 2020's home |
-|:---|:---|:---|
+|:-----------------------|:-----------------------|:-----------------------|
 | median size | [under 1,000 sq ft](https://www.npr.org/2006/07/04/5525283/behind-the-ever-expanding-american-dream-house) | [over 2,000 sq ft](https://fred.stlouisfed.org/series/COMPSFLAM1FQ) |
 | [complete plumbing](https://www.census.gov/data/tables/time-series/dec/coh-plumbing.html) | 66% | 99% |
 | air conditioning | [under 2%](https://www.sciencedirect.com/science/article/pii/S0014498308000132) | [over 90%](https://www.eia.gov/consumption/residential/data/2020/hc/pdf/HC%207.1.pdf) |
 
 : Comparison of housing features from 1950s to 2020s {#tbl-housing-features}
 
-[Andrew Latham](https://www.supermoney.com/author/andrew-latham) did a [great analysis on housing affordability](https://www.supermoney.com/inflation-adjusted-home-prices) where he found that the price per square foot of a house (ignoring amenities) from 1978-2023 grew by 20% which works out to roughly 0.44 pp per year which is about `r scales::percent(0.44/((coef(hp_data$mod)[2]*365/hp_data$tb$home_real[1])*100), accuracy = 1)` the rate of house prices in general. 
+[Andrew Latham](https://www.supermoney.com/author/andrew-latham) did a [great analysis on housing affordability](https://www.supermoney.com/inflation-adjusted-home-prices) where he found that the price per square foot of a house (ignoring amenities) from 1978-2023 grew by 20% which works out to roughly 0.44 pp per year which is about `r scales::percent(0.44/((coef(hp_data$mod)[2]*365/hp_data$tb$home_real[1])*100), accuracy = 1)` the rate of house prices in general.
 
-Of course the problem in all this is you can't buy a 1950's new-build today^[Not that anyone would want to!]; the option for a smaller, less feature rich house just isn't available today as it was in the past. Those aren't the houses being built, so buyers are left with nicer, larger^[Ironically, [households have been shrinking](https://www.census.gov/content/dam/Census/library/visualizations/time-series/demo/families-and-households/hh-6.pdf) over the same time that houses have gotten larger. However, the median square footage of new builds has been [decreasing over the last decade](https://fred.stlouisfed.org/series/COMPSFLAM1FQ).], and more expensive houses.
+Of course the problem in all this is you can't buy a 1950's new-build today; the option for a smaller, less feature rich house just isn't available today as it was in the past. Those aren't the houses being built, so buyers are left with nicer, larger^[Ironically, [households have been shrinking](https://www.census.gov/content/dam/Census/library/visualizations/time-series/demo/families-and-households/hh-6.pdf) over the same time that houses have gotten larger. However, the median square footage of new builds has been [decreasing over the last decade](https://fred.stlouisfed.org/series/COMPSFLAM1FQ).], and more expensive houses.
 
-
-Fortunately, we are coming out of a bubble which peaked in early 2022, so prices are cheaper today than a few years ago. However, unless housing policy/supply changes, we should expect housing to get more expensive. 
+Fortunately, we are coming out of a bubble which peaked in early 2022, so prices are cheaper today than a few years ago. However, unless housing policy/supply changes, we should expect housing to get more expensive.
 
 #### real household income
 
@@ -721,25 +721,25 @@ getDif = function(date_start, date_end) {
 }
 ```
 
-From `r format(min(hi_data$tb$date), '%B %Y')` to `r format(max(hi_data$tb$date), '%B %Y')`, the real median household income has **increased by `r scales::dollar(coef(hi_data$mod)[2]*365, 2)`  per year on average**. As of `r format(max(hp_data$tb$date), '%B %Y')`, the real median household income stands at `r scales::dollar(last(hi_data$tb$income_real), 2)`, placing it in the **`r scales::ordinal(hi_data$tp * 100)` percentile of all observations** in this period.
+From `r format(min(hi_data$tb$date), '%B %Y')` to `r format(max(hi_data$tb$date), '%B %Y')`, the real median household income has **increased by `r scales::dollar(coef(hi_data$mod)[2]*365, 2)` per year on average**. As of `r format(max(hp_data$tb$date), '%B %Y')`, the real median household income stands at `r scales::dollar(last(hi_data$tb$income_real), 2)`, placing it in the **`r scales::ordinal(hi_data$tp * 100)` percentile of all observations** in this period.
 
 There are three periods worth focusing on in @fig-real-household-income: Mid 1948 - late 1964, late 1964 - early 2012, and early 2012 - today. These periods are marked by significant growth (`r round((((p1_ri_2/p1_ri_1) - 1)/getDif(as.Date("1948-06-01"), as.Date("1964-12-01")) * 100), 2)` pp/year), little to no growth (`r round((((p2_ri_2/p1_ri_2) - 1)/getDif(as.Date("1964-12-01"), as.Date("2012-01-01")) * 100), 2)` pp/year), and substantial growth (`r round((((p3_ri_2/p2_ri_2) - 1)/getDif(as.Date("2012-01-01"), tb_final01$date %>% last()) * 100), 2)` pp/year), respectively. Let's examine each of these periods in turn.
 
 ##### Mid 1948 - late 1964
 
-This period saw significant growth over a brief period of time. From June 1948 to December 1964, real median household income grew from `r dollar(p1_ri_1)` to `r dollar(p1_ri_2)` representing an annual growth of `r round((((p1_ri_2/p1_ri_1) - 1)/getDif(as.Date("1948-06-01"), as.Date("1964-12-01")) * 100), 2)` pp per year. NEED DETAILS ON ECONOMIC CONDITION.
+This period saw significant growth over a brief period of time. From June 1948 to December 1964, real median household income grew from `r dollar(p1_ri_1)` to `r dollar(p1_ri_2)` representing an annual growth of `r round((((p1_ri_2/p1_ri_1) - 1)/getDif(as.Date("1948-06-01"), as.Date("1964-12-01")) * 100), 2)` pp per year. Post WWII, with Europe and Japan having to rebuild their industrial bases and with the establishment of the [Bretton Woods System](https://www.federalreservehistory.org/essays/bretton-woods-created), the US was poised to become an economic powerhouse, facing almost no industrial competition. By the early 1950s, the US produced nearly half (44.8%) of the world's manufactured goods [@bairoch1982international, p. 275]. Technological advancements were largely responsible for significant increases to productivity [@kendrick1961productivity], and much of the productivity gains [benefiting the typical worker](https://www.epi.org/productivity-pay-gap/).
 
 ##### Late 1964 - early 2012
 
-This period saw little to no growth. From December 1964 to January 2012, the real median household income only grew to `r dollar(p2_ri_2)` representing an annual growth of `r round((((p2_ri_2/p1_ri_2) - 1)/getDif(as.Date("1964-12-01"), as.Date("2012-01-01")) * 100), 2)` pp per year. Of course there were highs and lows over this period^[The peak income over this period was reached on July 1999 at `r dollar(p2_ri_rng$income_real[1])` representing a growth of `r round((((p2_ri_rng$income_real[1]/p1_ri_2) - 1)/getDif(as.Date("1964-12-01"), as.Date("1999-07-01")) * 100), 2)` pp per year. The lowest income over this period was reached on June 1982 at `r dollar(p2_ri_rng$income_real[2])` representing a decline of `r round((((p2_ri_rng$income_real[2]/p1_ri_2) - 1)/getDif(as.Date("1964-12-01"), as.Date("1999-07-01")) * 100), 2)` pp per year.], but overall growth was stagnant. Further analyzing this period becomes nebulous quickly. [Analysis by the Urban Institute](https://www.urban.org/sites/default/files/publication/65351/2000331-Beyond-the-Wage-Stagnation-Story.pdf) (a left-leaning think tank) have found that when you include all payments (e.g. benefits from employer), from 1979 - 2013 real income grew by roughly 1.1 pp per year. Furthermore, when you break up the analysis by different demographics (age, gender, education, etc.) you see some groups had significant growth (60+, women, higher education) while others lagged behind (25-34, men, less than BA). 
+This period saw little to no growth. From December 1964 to January 2012, the real median household income only grew to `r dollar(p2_ri_2)` representing an annual growth of `r round((((p2_ri_2/p1_ri_2) - 1)/getDif(as.Date("1964-12-01"), as.Date("2012-01-01")) * 100), 2)` pp per year. Of course there were highs and lows over this period^[The peak income over this period was reached on July 1999 at `r dollar(p2_ri_rng$income_real[1])` representing a growth of `r round((((p2_ri_rng$income_real[1]/p1_ri_2) - 1)/getDif(as.Date("1964-12-01"), as.Date("1999-07-01")) * 100), 2)` pp per year. The lowest income over this period was reached on June 1982 at `r dollar(p2_ri_rng$income_real[2])` representing a decline of `r round((((p2_ri_rng$income_real[2]/p1_ri_2) - 1)/getDif(as.Date("1964-12-01"), as.Date("1999-07-01")) * 100), 2)` pp per year.], but overall growth was stagnant. Further analyzing this period becomes nebulous quickly. Analysis by Stephen Rose at the Urban Institute, a left-leaning think tank, have found that when you include all payments (e.g. benefits from employer), from 1979 - 2013 real income grew by roughly 1.1 pp per year. Furthermore, when you break up the analysis by different demographics (age, gender, education, etc.) you see some groups had significant growth while others lagged behind [@rose2015beyond]^[Groups that saw significant growth: Ages 60+, women, and education level of BA or higher. Groups that lagged in growth: Ages 25-34, men, and education levels below BA.].
 
 ##### Early 2012 - today
 
-This period has seen substantial growth. From January 2012 to `r tb_final01$date %>% last() %>% format("%B %Y")`, the real median household income grew to `r dollar(p3_ri_2)` representing an annual growth of `r round((((p3_ri_2/p2_ri_2) - 1)/getDif(as.Date("2012-01-01"), tb_final01$date %>% last()) * 100), 2)` pp per year. NEED COMMENTARY ON HOW THIS GROWTH RELATES TO AVERAGE GROWTH IN HOUSING COST. NEED DETAILS ON ECONOMIC CONDITION. 
+This period has seen substantial growth. From January 2012 to `r tb_final01$date %>% last() %>% format("%B %Y")`, the real median household income grew to `r dollar(p3_ri_2)` representing an annual growth of `r round((((p3_ri_2/p2_ri_2) - 1)/getDif(as.Date("2012-01-01"), tb_final01$date %>% last()) * 100), 2)` pp per year. NEED COMMENTARY ON HOW THIS GROWTH RELATES TO AVERAGE GROWTH IN HOUSING COST. NEED DETAILS ON ECONOMIC CONDITION.
 
 #### price-to-income ratio
 
-We can use nominal dollars to calculate the price to income ratio. I'll include a linear model to help us understand the trend over time. 
+We can use nominal dollars to calculate the price to income ratio. I'll include a linear model to help us understand the trend over time.
 
 ```{r}
 #| label: fig-price-to-income-ratio
@@ -760,7 +760,8 @@ createForecastPlot(
 )
 ```
 
-From `r format(min(pi_data$tb$date), '%B %Y')` to `r format(max(pi_data$tb$date), '%B %Y')`, the price-to-income ratio of a home has **increased by `r round(coef(pi_data$mod)[2]*365*100, 2)` percentage points (pp) per year on average**. As of `r format(max(pi_data$tb$date), '%B %Y')`, the ratio stands at `r round(last(pi_data$tb$pi_ratio), 2)`^[Meaning the typical house costs the typical household `r round(last(pi_data$tb$pi_ratio), 2)` $\times$ their gross annual income], placing it in the **`r scales::ordinal(pi_data$tp * 100)` percentile of all observations** in this period.
+From `r format(min(pi_data$tb$date), '%B %Y')` to `r format(max(pi_data$tb$date), '%B %Y')`, the price-to-income ratio of a home has **increased by `r round(coef(pi_data$mod)[2]*365*100, 2)` percentage points (pp) per year on average**. As of `r format(max(pi_data$tb$date), '%B %Y')`, the ratio stands at `r round(last(pi_data$tb$pi_ratio), 2)`, placing it in the **`r scales::ordinal(pi_data$tp * 100)` percentile of all observations** in this period.
+
 
 #### debt-to-income ratio
 
@@ -783,4 +784,6 @@ createForecastPlot(
 )
 ```
 
-From `r format(min(di_data$tb$date), '%B %Y')` to `r format(max(di_data$tb$date), '%B %Y')`, the mortgage debt-to-income ratio has **decreased by `r round(coef(di_data$mod)[2]*365*100, 2)` pp per year on average**. As of `r format(max(di_data$tb$date), '%B %Y')`, the ratio stands at `r round(last(di_data$tb$dti_ratio), 2)`^[Meaning the typical household would spend `r round(last(di_data$tb$dti_ratio), 2)` $\times$ their monthly income on the typical mortgage. This calculation assumes only interest and principal.], placing it in the **`r scales::ordinal(di_data$tp * 100)` percentile of all observations** in this period.
+From `r format(min(di_data$tb$date), '%B %Y')` to `r format(max(di_data$tb$date), '%B %Y')`, the mortgage debt-to-income ratio has **decreased by `r round(coef(di_data$mod)[2]*365*100, 2)` pp per year on average**. As of `r format(max(di_data$tb$date), '%B %Y')`, the ratio stands at `r round(last(di_data$tb$dti_ratio), 2)`, placing it in the **`r scales::ordinal(di_data$tp * 100)` percentile of all observations** in this period.
+
+# references

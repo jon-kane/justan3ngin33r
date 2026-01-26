@@ -21,6 +21,7 @@ website:
 format:
   html:
     theme: cyborg
+    bibliography: references.bib
     page-layout: article
     toc: true
     toc-title: "on the page"
@@ -32,5 +33,4 @@ format:
     date-format: long
     css: styles.css
     reference-location: margin
-    citation-location: margin
 
